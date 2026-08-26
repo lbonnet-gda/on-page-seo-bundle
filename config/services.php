@@ -14,5 +14,6 @@ return static function (ContainerConfigurator $container): void {
         ->exclude([
             '../src/OnPageSeoBundle.php',
             '../src/DependencyInjection/',
+            '../src/Model/',
         ]);
 };

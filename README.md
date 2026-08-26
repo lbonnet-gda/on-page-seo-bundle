@@ -56,7 +56,7 @@ php bin/console on-page-seo:check
 ## Roadmap
 
 - [x] Bundle skeleton and configuration
-- [ ] Page metadata extraction (title, meta description, headings, image alt)
+- [x] Page metadata extraction (title, meta description, headings, image alt)
 - [ ] Site crawler orchestration
 - [ ] Per-page audit rules (missing/too long title and description, missing H1, images without alt)
 - [ ] Duplicate title/description detection across pages
