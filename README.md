@@ -57,7 +57,7 @@ php bin/console on-page-seo:check
 
 - [x] Bundle skeleton and configuration
 - [x] Page metadata extraction (title, meta description, headings, image alt)
-- [ ] Site crawler orchestration
+- [x] Site crawler orchestration
 - [x] Per-page audit rules (missing/too long title and description, missing H1, images without alt)
 - [ ] Duplicate title/description detection across pages
 - [ ] Console command
