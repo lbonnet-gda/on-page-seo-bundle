@@ -65,7 +65,7 @@ code when SEO issues are found, so it can be used as a CI check.
 - [x] Duplicate title/description detection across pages
 - [x] Console command
 - [x] Result persistence
-- [ ] Tests & CI matrix
+- [x] Tests & CI matrix
 
 ## License
 
