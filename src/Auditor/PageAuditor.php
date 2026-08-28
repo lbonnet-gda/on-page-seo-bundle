@@ -12,7 +12,7 @@ final class PageAuditor implements PageAuditorInterface
 {
     public function __construct(
         private readonly int $maxTitleLength = 60,
-        private readonly int $maxDescriptionLength = 160,
+        private readonly int $maxDescriptionLength = 155,
     ) {
     }
 

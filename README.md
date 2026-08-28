@@ -39,7 +39,7 @@ on_page_seo:
     max_depth: 3 # crawl depth from the start URL
     timeout: 10 # per-request timeout (seconds)
     max_title_length: 60 # flag titles longer than this
-    max_description_length: 160 # flag meta-descriptions longer than this
+    max_description_length: 155 # flag meta-descriptions longer than this
     exclude_patterns: # URLs matching these regexes are skipped
         - '#/admin#'
         - '#\.pdf$#'

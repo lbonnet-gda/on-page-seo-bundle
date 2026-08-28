@@ -36,7 +36,7 @@ final class OnPageSeoBundle extends AbstractBundle
                     ->info('Titles longer than this (in characters) are flagged as too long.')
                 ->end()
                 ->integerNode('max_description_length')
-                    ->defaultValue(160)
+                    ->defaultValue(155)
                     ->min(1)
                     ->info('Meta descriptions longer than this (in characters) are flagged as too long.')
                 ->end()
