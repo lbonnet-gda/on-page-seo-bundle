@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lbonnet\OnPageSeoBundle\Crawler;
 
+use Lbonnet\OnPageSeoBundle\Auditor\DuplicateContentAuditorInterface;
 use Lbonnet\OnPageSeoBundle\Auditor\PageAuditorInterface;
 use Lbonnet\OnPageSeoBundle\Extractor\InternalLinkExtractorInterface;
 use Lbonnet\OnPageSeoBundle\Extractor\PageMetadataExtractorInterface;
@@ -19,6 +20,7 @@ final class SiteCrawler implements CrawlerInterface
         private readonly InternalLinkExtractorInterface $linkExtractor,
         private readonly PageMetadataExtractorInterface $metadataExtractor,
         private readonly PageAuditorInterface $auditor,
+        private readonly DuplicateContentAuditorInterface $duplicateContentAuditor,
         private readonly HttpClientInterface $httpClient,
         private readonly int $defaultMaxDepth = 3,
         private readonly int $defaultTimeout = 10,
@@ -98,6 +100,8 @@ final class SiteCrawler implements CrawlerInterface
                 $queue[] = ['url' => $link->url, 'depth' => $depth + 1];
             }
         }
+
+        $pages = $this->duplicateContentAuditor->audit($pages);
 
         $totalDuration = microtime(true) - $startTime;
 

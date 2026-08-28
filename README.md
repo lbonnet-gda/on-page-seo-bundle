@@ -60,7 +60,7 @@ code when SEO issues are found, so it can be used as a CI check.
 - [x] Page metadata extraction (title, meta description, headings, image alt)
 - [x] Site crawler orchestration
 - [x] Per-page audit rules (missing/too long title and description, missing H1, images without alt)
-- [ ] Duplicate title/description detection across pages
+- [x] Duplicate title/description detection across pages
 - [x] Console command
 - [ ] Result persistence
 - [ ] Tests & CI matrix

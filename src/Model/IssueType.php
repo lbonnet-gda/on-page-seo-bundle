@@ -13,4 +13,6 @@ enum IssueType: string
     case MissingH1 = 'missing_h1';
     case MultipleH1 = 'multiple_h1';
     case ImageMissingAlt = 'image_missing_alt';
+    case DuplicateTitle = 'duplicate_title';
+    case DuplicateDescription = 'duplicate_description';
 }

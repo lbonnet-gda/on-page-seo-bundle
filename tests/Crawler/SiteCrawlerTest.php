@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lbonnet\OnPageSeoBundle\Tests\Crawler;
 
+use Lbonnet\OnPageSeoBundle\Auditor\DuplicateContentAuditor;
 use Lbonnet\OnPageSeoBundle\Auditor\PageAuditorInterface;
 use Lbonnet\OnPageSeoBundle\Crawler\SiteCrawler;
 use Lbonnet\OnPageSeoBundle\Extractor\InternalLinkExtractorInterface;
@@ -40,7 +41,14 @@ final class SiteCrawlerTest extends TestCase
             ['response_headers' => ['content-type' => 'text/html; charset=UTF-8']],
         ));
 
-        $crawler = new SiteCrawler($linkExtractor, $metadataExtractor, $auditor, $httpClient, defaultMaxDepth: 1);
+        $crawler = new SiteCrawler(
+            $linkExtractor,
+            $metadataExtractor,
+            $auditor,
+            new DuplicateContentAuditor(),
+            $httpClient,
+            defaultMaxDepth: 1,
+        );
 
         $report = $crawler->crawl($startUrl);
 
@@ -73,7 +81,14 @@ final class SiteCrawlerTest extends TestCase
 
         $httpClient = new MockHttpClient(static fn(): MockResponse => new MockResponse('<html></html>'));
 
-        $crawler = new SiteCrawler($linkExtractor, $metadataExtractor, $auditor, $httpClient, defaultMaxDepth: 1);
+        $crawler = new SiteCrawler(
+            $linkExtractor,
+            $metadataExtractor,
+            $auditor,
+            new DuplicateContentAuditor(),
+            $httpClient,
+            defaultMaxDepth: 1,
+        );
 
         $report = $crawler->crawl($startUrl);
 
@@ -106,7 +121,14 @@ final class SiteCrawlerTest extends TestCase
             return new MockResponse('<html></html>', ['response_headers' => ['content-type' => 'text/html']]);
         });
 
-        $crawler = new SiteCrawler($linkExtractor, $metadataExtractor, $auditor, $httpClient, defaultMaxDepth: 1);
+        $crawler = new SiteCrawler(
+            $linkExtractor,
+            $metadataExtractor,
+            $auditor,
+            new DuplicateContentAuditor(),
+            $httpClient,
+            defaultMaxDepth: 1,
+        );
 
         $report = $crawler->crawl($startUrl);
 
