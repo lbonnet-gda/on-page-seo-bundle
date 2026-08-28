@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Lbonnet\OnPageSeoBundle;
 
+use Lbonnet\OnPageSeoBundle\Storage\JsonFileReportStorage;
+use Lbonnet\OnPageSeoBundle\Storage\ReportStorageInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -44,6 +46,15 @@ final class OnPageSeoBundle extends AbstractBundle
                     ->scalarPrototype()->end()
                     ->info('Regular expression patterns for URLs to skip.')
                 ->end()
+                ->scalarNode('storage_dir')
+                    ->defaultValue('%kernel.project_dir%/var/on_page_seo')
+                    ->info('Directory where SEO audit reports in JSON will be stored. Set to empty or null to disable.')
+                ->end()
+                ->integerNode('storage_max_reports')
+                    ->defaultValue(30)
+                    ->min(0)
+                    ->info('Maximum number of stored reports to keep per crawled URL; the oldest are deleted past that. Set to 0 to keep every report forever.')
+                ->end()
             ->end()
         ;
         // @formatter:on
@@ -59,6 +70,13 @@ final class OnPageSeoBundle extends AbstractBundle
             ->set('on_page_seo.timeout', $config['timeout'])
             ->set('on_page_seo.max_title_length', $config['max_title_length'])
             ->set('on_page_seo.max_description_length', $config['max_description_length'])
-            ->set('on_page_seo.exclude_patterns', $config['exclude_patterns']);
+            ->set('on_page_seo.exclude_patterns', $config['exclude_patterns'])
+            ->set('on_page_seo.storage_dir', $config['storage_dir'])
+            ->set('on_page_seo.storage_max_reports', $config['storage_max_reports']);
+
+        if ($config['storage_dir'] === null || $config['storage_dir'] === '') {
+            $builder->removeDefinition(JsonFileReportStorage::class);
+            $builder->removeAlias(ReportStorageInterface::class);
+        }
     }
 }

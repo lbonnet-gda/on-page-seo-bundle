@@ -43,6 +43,8 @@ on_page_seo:
     exclude_patterns: # URLs matching these regexes are skipped
         - '#/admin#'
         - '#\.pdf$#'
+    storage_dir: '%kernel.project_dir%/var/on_page_seo' # JSON reports directory; set to null/empty to disable
+    storage_max_reports: 30 # oldest reports are deleted past this count per crawled URL (0 = keep forever)
 ```
 
 ## Usage
@@ -62,7 +64,7 @@ code when SEO issues are found, so it can be used as a CI check.
 - [x] Per-page audit rules (missing/too long title and description, missing H1, images without alt)
 - [x] Duplicate title/description detection across pages
 - [x] Console command
-- [ ] Result persistence
+- [x] Result persistence
 - [ ] Tests & CI matrix
 
 ## License

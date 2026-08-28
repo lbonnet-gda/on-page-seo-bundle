@@ -6,6 +6,7 @@ namespace Lbonnet\OnPageSeoBundle\Command;
 
 use Lbonnet\OnPageSeoBundle\Crawler\CrawlerInterface;
 use Lbonnet\OnPageSeoBundle\Model\SeoAuditReport;
+use Lbonnet\OnPageSeoBundle\Storage\ReportStorageInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
@@ -16,6 +17,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Terminal;
+use Throwable;
 
 #[AsCommand(
     name: 'on-page-seo:check',
@@ -27,6 +29,7 @@ final class CheckSeoCommand extends Command
 
     public function __construct(
         private readonly CrawlerInterface $crawler,
+        private readonly ?ReportStorageInterface $storage = null,
         private readonly ?string $defaultBaseUrl = null,
     ) {
         parent::__construct();
@@ -128,6 +131,8 @@ final class CheckSeoCommand extends Command
                 $io->newLine();
             }
 
+            $this->persistReport($io, $report);
+
             if (!$report->hasIssues()) {
                 $io->success(
                     sprintf(
@@ -145,6 +150,20 @@ final class CheckSeoCommand extends Command
             return Command::FAILURE;
         } finally {
             $this->release();
+        }
+    }
+
+    private function persistReport(SymfonyStyle $io, SeoAuditReport $report): void
+    {
+        if ($this->storage === null) {
+            return;
+        }
+
+        try {
+            $location = $this->storage->save($report);
+            $io->comment(sprintf('Report saved to %s', $location));
+        } catch (Throwable $e) {
+            $io->warning(sprintf('Failed to save report: %s', $e->getMessage()));
         }
     }
 

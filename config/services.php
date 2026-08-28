@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Lbonnet\OnPageSeoBundle\Auditor\PageAuditor;
 use Lbonnet\OnPageSeoBundle\Command\CheckSeoCommand;
 use Lbonnet\OnPageSeoBundle\Crawler\SiteCrawler;
+use Lbonnet\OnPageSeoBundle\Storage\JsonFileReportStorage;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 
@@ -32,4 +33,8 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(CheckSeoCommand::class)
         ->arg('$defaultBaseUrl', param('on_page_seo.base_url'));
+
+    $services->set(JsonFileReportStorage::class)
+        ->arg('$storageDirectory', param('on_page_seo.storage_dir'))
+        ->arg('$maxReports', param('on_page_seo.storage_max_reports'));
 };
