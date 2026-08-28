@@ -47,11 +47,12 @@ on_page_seo:
 
 ## Usage
 
-> Command coming in a later step.
-
 ```bash
-php bin/console on-page-seo:check
+php bin/console on-page-seo:check [url] [--max-depth=N] [--exclude=PATTERN ...]
 ```
+
+The `url` argument is optional if `on_page_seo.base_url` is configured. The command exits with a non-zero status
+code when SEO issues are found, so it can be used as a CI check.
 
 ## Roadmap
 
@@ -60,7 +61,7 @@ php bin/console on-page-seo:check
 - [x] Site crawler orchestration
 - [x] Per-page audit rules (missing/too long title and description, missing H1, images without alt)
 - [ ] Duplicate title/description detection across pages
-- [ ] Console command
+- [x] Console command
 - [ ] Result persistence
 - [ ] Tests & CI matrix
 
