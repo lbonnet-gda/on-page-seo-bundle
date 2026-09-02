@@ -9,6 +9,7 @@ use Lbonnet\CrawlerToolkit\Robots\RobotsTxtCheckerInterface;
 use Lbonnet\OnPageSeoBundle\Auditor\DuplicateContentAuditor;
 use Lbonnet\OnPageSeoBundle\Auditor\PageAuditorInterface;
 use Lbonnet\OnPageSeoBundle\Crawler\SiteCrawler;
+use Lbonnet\OnPageSeoBundle\Event\CrawlCompletedEvent;
 use Lbonnet\OnPageSeoBundle\Extractor\InternalLinkExtractorInterface;
 use Lbonnet\OnPageSeoBundle\Extractor\PageMetadataExtractorInterface;
 use Lbonnet\OnPageSeoBundle\Model\DiscoveredLink;
@@ -18,6 +19,8 @@ use Lbonnet\OnPageSeoBundle\Model\PageAudit;
 use Lbonnet\OnPageSeoBundle\Model\PageMetadata;
 use LogicException;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use RuntimeException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -64,6 +67,71 @@ final class SiteCrawlerTest extends TestCase
             ['https://example.com', 'https://example.com/page-1'],
             array_map(static fn(PageAudit $page): string => $page->url, $report->pages),
         );
+    }
+
+    public function testCrawlDispatchesEvent(): void
+    {
+        $startUrl = 'https://example.com';
+
+        $linkExtractor = $this->createMock(InternalLinkExtractorInterface::class);
+        $linkExtractor->method('extract')->willReturn([]);
+
+        $metadataExtractor = $this->createMock(PageMetadataExtractorInterface::class);
+        $metadataExtractor->method('extract')->willReturn(new PageMetadata());
+
+        $auditor = $this->createMock(PageAuditorInterface::class);
+        $auditor->method('audit')->willReturn([]);
+
+        $httpClient = new MockHttpClient(static fn(): MockResponse => new MockResponse('<html></html>'));
+
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->isInstanceOf(CrawlCompletedEvent::class));
+
+        $crawler = new SiteCrawler(
+            $linkExtractor,
+            $metadataExtractor,
+            $auditor,
+            new DuplicateContentAuditor(),
+            $httpClient,
+            eventDispatcher: $dispatcher,
+        );
+
+        $crawler->crawl($startUrl);
+    }
+
+    public function testCrawlReturnsReportEvenIfEventListenerThrows(): void
+    {
+        $startUrl = 'https://example.com';
+
+        $linkExtractor = $this->createMock(InternalLinkExtractorInterface::class);
+        $linkExtractor->method('extract')->willReturn([]);
+
+        $metadataExtractor = $this->createMock(PageMetadataExtractorInterface::class);
+        $metadataExtractor->method('extract')->willReturn(new PageMetadata());
+
+        $auditor = $this->createMock(PageAuditorInterface::class);
+        $auditor->method('audit')->willReturn([]);
+
+        $httpClient = new MockHttpClient(static fn(): MockResponse => new MockResponse('<html></html>'));
+
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $dispatcher->method('dispatch')->willThrowException(new RuntimeException('Slack transport misconfigured'));
+
+        $crawler = new SiteCrawler(
+            $linkExtractor,
+            $metadataExtractor,
+            $auditor,
+            new DuplicateContentAuditor(),
+            $httpClient,
+            eventDispatcher: $dispatcher,
+        );
+
+        $report = $crawler->crawl($startUrl);
+
+        $this->assertSame($startUrl, $report->startUrl);
+        $this->assertSame(1, $report->totalChecked);
     }
 
     public function testCrawlStopsDiscoveringLinksPastMaxDepth(): void

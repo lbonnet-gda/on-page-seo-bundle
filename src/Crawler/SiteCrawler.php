@@ -11,10 +11,14 @@ use Lbonnet\CrawlerToolkit\Robots\RobotsTxtCheckerInterface;
 use Lbonnet\CrawlerToolkit\Url\UrlNormalizer;
 use Lbonnet\OnPageSeoBundle\Auditor\DuplicateContentAuditorInterface;
 use Lbonnet\OnPageSeoBundle\Auditor\PageAuditorInterface;
+use Lbonnet\OnPageSeoBundle\Event\CrawlCompletedEvent;
 use Lbonnet\OnPageSeoBundle\Extractor\InternalLinkExtractorInterface;
 use Lbonnet\OnPageSeoBundle\Extractor\PageMetadataExtractorInterface;
 use Lbonnet\OnPageSeoBundle\Model\PageAudit;
 use Lbonnet\OnPageSeoBundle\Model\SeoAuditReport;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Throwable;
@@ -31,12 +35,14 @@ final class SiteCrawler implements CrawlerInterface
         private readonly PageAuditorInterface $auditor,
         private readonly DuplicateContentAuditorInterface $duplicateContentAuditor,
         private readonly HttpClientInterface $httpClient,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
         private readonly ?RobotsTxtCheckerInterface $robotsTxtChecker = null,
         private readonly int $defaultMaxDepth = 3,
         private readonly int $defaultTimeout = 10,
         private readonly string $userAgent = self::DEFAULT_USER_AGENT,
         /** @var list<string> */
         private readonly array $defaultExcludePatterns = [],
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
     }
 
@@ -152,11 +158,21 @@ final class SiteCrawler implements CrawlerInterface
 
         $totalDuration = microtime(true) - $startTime;
 
-        return new SeoAuditReport(
+        $report = new SeoAuditReport(
             startUrl: $startUrl,
             pages: $pages,
             totalChecked: $totalChecked,
             totalDuration: round($totalDuration, 3),
         );
+
+        try {
+            $this->eventDispatcher?->dispatch(new CrawlCompletedEvent($report));
+        } catch (Throwable $e) {
+            $this->logger->error(
+                sprintf('[OnPageSeo] A "CrawlCompletedEvent" listener failed: %s', $e->getMessage())
+            );
+        }
+
+        return $report;
     }
 }

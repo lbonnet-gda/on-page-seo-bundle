@@ -23,6 +23,7 @@ return static function (ContainerConfigurator $container): void {
             '../src/OnPageSeoBundle.php',
             '../src/DependencyInjection/',
             '../src/Model/',
+            '../src/Event/',
         ]);
 
     $services->set(PageAuditor::class)
