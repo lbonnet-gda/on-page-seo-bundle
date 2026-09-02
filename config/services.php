@@ -7,6 +7,7 @@ use Lbonnet\CrawlerToolkit\Robots\RobotsTxtCheckerInterface;
 use Lbonnet\OnPageSeoBundle\Auditor\PageAuditor;
 use Lbonnet\OnPageSeoBundle\Command\CheckSeoCommand;
 use Lbonnet\OnPageSeoBundle\Crawler\SiteCrawler;
+use Lbonnet\OnPageSeoBundle\MessageHandler\CheckSeoMessageHandler;
 use Lbonnet\OnPageSeoBundle\Storage\JsonFileReportStorage;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
@@ -24,6 +25,7 @@ return static function (ContainerConfigurator $container): void {
             '../src/DependencyInjection/',
             '../src/Model/',
             '../src/Event/',
+            '../src/Message/',
         ]);
 
     $services->set(PageAuditor::class)
@@ -45,6 +47,9 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(RobotsTxtCheckerInterface::class, RobotsTxtChecker::class);
 
     $services->set(CheckSeoCommand::class)
+        ->arg('$defaultBaseUrl', param('on_page_seo.base_url'));
+
+    $services->set(CheckSeoMessageHandler::class)
         ->arg('$defaultBaseUrl', param('on_page_seo.base_url'));
 
     $services->set(JsonFileReportStorage::class)

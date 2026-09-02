@@ -53,12 +53,36 @@ on_page_seo:
 
 ## Usage
 
+### 1. Console Command (CLI & CI)
+
 ```bash
 php bin/console on-page-seo:check [url] [--max-depth=N] [--exclude=PATTERN ...]
 ```
 
 The `url` argument is optional if `on_page_seo.base_url` is configured. The command exits with a non-zero status code
 when SEO issues are found, so it can be used as a CI check.
+
+### 2. Asynchronous Execution (Messenger)
+
+The bundle provides a `CheckSeoMessage` and its handler to offload the audit to an asynchronous worker queue:
+
+```php
+use Lbonnet\OnPageSeoBundle\Message\CheckSeoMessage;use Symfony\Component\Messenger\MessageBusInterface;
+
+// In a controller, command or custom service
+public function triggerAudit(MessageBusInterface $bus): void
+{
+    // Uses default configuration values
+    $bus->dispatch(new CheckSeoMessage());
+
+    // Or with custom parameters
+    $bus->dispatch(new CheckSeoMessage(
+        startUrl: 'https://example.com/blog',
+        maxDepth: 2,
+        excludePatterns: ['#/preview#'],
+    ));
+}
+```
 
 ## License
 
