@@ -8,6 +8,7 @@ use Lbonnet\CrawlerToolkit\Http\ThrottledHttpClient;
 use Lbonnet\OnPageSeoBundle\Crawler\SiteCrawler;
 use Lbonnet\OnPageSeoBundle\Storage\JsonFileReportStorage;
 use Lbonnet\OnPageSeoBundle\Storage\ReportStorageInterface;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -20,66 +21,84 @@ final class OnPageSeoBundle extends AbstractBundle
 {
     public function configure(DefinitionConfigurator $definition): void
     {
-        // @formatter:off
-        $definition->rootNode()
-            ->children()
-                ->scalarNode('base_url')
-                    ->defaultNull()
-                    ->info('Default base URL to crawl when none is passed to the command.')
-                ->end()
-                ->integerNode('max_depth')
-                    ->defaultValue(3)
-                    ->min(0)
-                    ->info('Maximum crawl depth from the starting URL.')
-                ->end()
-                ->integerNode('timeout')
-                    ->defaultValue(10)
-                    ->min(1)
-                    ->info('Per-request timeout in seconds when fetching a page.')
-                ->end()
-                ->scalarNode('user_agent')
-                    ->defaultValue(SiteCrawler::DEFAULT_USER_AGENT)
-                    ->info('User-Agent header sent when fetching a page. Identify your crawler honestly; do not spoof a browser UA to bypass bot protection.')
-                ->end()
-                ->integerNode('max_title_length')
-                    ->defaultValue(60)
-                    ->min(1)
-                    ->info('Titles longer than this (in characters) are flagged as too long.')
-                ->end()
-                ->integerNode('max_description_length')
-                    ->defaultValue(155)
-                    ->min(1)
-                    ->info('Meta descriptions longer than this (in characters) are flagged as too long.')
-                ->end()
-                ->arrayNode('exclude_patterns')
-                    ->scalarPrototype()->end()
-                    ->info('Regular expression patterns for URLs to skip.')
-                ->end()
-                ->scalarNode('storage_dir')
-                    ->defaultValue('%kernel.project_dir%/var/on_page_seo')
-                    ->info('Directory where SEO audit reports in JSON will be stored. Set to empty or null to disable.')
-                ->end()
-                ->integerNode('storage_max_reports')
-                    ->defaultValue(30)
-                    ->min(0)
-                    ->info('Maximum number of stored reports to keep per crawled URL; the oldest are deleted past that. Set to 0 to keep every report forever.')
-                ->end()
-                ->booleanNode('allow_private_network')
-                    ->defaultFalse()
-                    ->info('Allow requests to URLs resolving to private/loopback/link-local IP ranges (e.g. 127.0.0.1, 10.0.0.0/8, cloud metadata endpoints). The crawler follows links found on the pages it visits, so leaving this disabled (default) prevents SSRF if it ever crawls untrusted or third-party content. Enable only to intentionally audit an internal network.')
-                ->end()
-                ->integerNode('request_delay_ms')
-                    ->defaultValue(200)
-                    ->min(0)
-                    ->info('Minimum delay, in milliseconds, enforced between consecutive requests to the same host. The host you\'re crawling (the "url" argument/"base_url") is always exempt, so this only slows down requests to other hosts. Set to 0 to disable throttling entirely.')
-                ->end()
-                ->booleanNode('respect_robots_txt')
-                    ->defaultTrue()
-                    ->info('Fetch and honor the crawled site\'s robots.txt: matching Disallow rules stop the crawler from following/auditing further internal pages under that path. Does not apply to the URL you explicitly start the crawl from.')
-                ->end()
-            ->end()
-        ;
-        // @formatter:on
+        /** @var ArrayNodeDefinition $rootNode */
+        $rootNode = $definition->rootNode();
+        $children = $rootNode->children();
+
+        $children->scalarNode('base_url')
+            ->defaultNull()
+            ->info('Default base URL to crawl when none is passed to the command.')
+            ->end();
+
+        $children->integerNode('max_depth')
+            ->defaultValue(3)
+            ->min(0)
+            ->info('Maximum crawl depth from the starting URL.')
+            ->end();
+
+        $children->integerNode('timeout')
+            ->defaultValue(10)
+            ->min(1)
+            ->info('Per-request timeout in seconds when fetching a page.')
+            ->end();
+
+        $children->scalarNode('user_agent')
+            ->defaultValue(SiteCrawler::DEFAULT_USER_AGENT)
+            ->info(
+                'User-Agent header sent when fetching a page. Identify your crawler honestly; do not spoof a browser UA to bypass bot protection.'
+            )
+            ->end();
+
+        $children->integerNode('max_title_length')
+            ->defaultValue(60)
+            ->min(1)
+            ->info('Titles longer than this (in characters) are flagged as too long.')
+            ->end();
+
+        $children->integerNode('max_description_length')
+            ->defaultValue(155)
+            ->min(1)
+            ->info('Meta descriptions longer than this (in characters) are flagged as too long.')
+            ->end();
+
+        $children->arrayNode('exclude_patterns')
+            ->info('Regular expression patterns for URLs to skip.')
+            ->scalarPrototype()->end();
+
+        $children->scalarNode('storage_dir')
+            ->defaultValue('%kernel.project_dir%/var/on_page_seo')
+            ->info('Directory where SEO audit reports in JSON will be stored. Set to empty or null to disable.')
+            ->end();
+
+        $children->integerNode('storage_max_reports')
+            ->defaultValue(30)
+            ->min(0)
+            ->info(
+                'Maximum number of stored reports to keep per crawled URL; the oldest are deleted past that. Set to 0 to keep every report forever.'
+            )
+            ->end();
+
+        $children->booleanNode('allow_private_network')
+            ->defaultFalse()
+            ->info(
+                'Allow requests to URLs resolving to private/loopback/link-local IP ranges (e.g. 127.0.0.1, 10.0.0.0/8, cloud metadata endpoints). The crawler follows links found on the pages it visits, so leaving this disabled (default) prevents SSRF if it ever crawls untrusted or third-party content. Enable only to intentionally audit an internal network.'
+            )
+            ->end();
+
+        $children->integerNode('request_delay_ms')
+            ->defaultValue(200)
+            ->min(0)
+            ->info(
+                'Minimum delay, in milliseconds, enforced between consecutive requests to the same host. The host you\'re crawling (the "url" argument/"base_url") is always exempt, so this only slows down requests to other hosts. Set to 0 to disable throttling entirely.'
+            )
+            ->end();
+
+        $children->booleanNode('respect_robots_txt')
+            ->defaultTrue()
+            ->info(
+                'Fetch and honor the crawled site\'s robots.txt: matching Disallow rules stop the crawler from following/auditing further internal pages under that path. Does not apply to the URL you explicitly start the crawl from.'
+            )
+            ->end();
     }
 
     /**
