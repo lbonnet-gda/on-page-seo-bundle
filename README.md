@@ -1,5 +1,10 @@
 # OnPageSeoBundle
 
+[![CI](https://github.com/lbonnet-gda/on-page-seo-bundle/actions/workflows/ci.yaml/badge.svg)](https://github.com/lbonnet-gda/on-page-seo-bundle/actions/workflows/ci.yaml)
+[![Latest Version](https://img.shields.io/packagist/v/lbonnet/on-page-seo-bundle.svg)](https://packagist.org/packages/lbonnet/on-page-seo-bundle)
+[![PHP Version](https://img.shields.io/packagist/php-v/lbonnet/on-page-seo-bundle.svg)](https://packagist.org/packages/lbonnet/on-page-seo-bundle)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A Symfony bundle to crawl a site and audit on-page SEO signals: titles, meta descriptions, headings, image alt
 attributes, and duplicate titles/descriptions across pages.
 
