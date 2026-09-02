@@ -38,6 +38,7 @@ on_page_seo:
     base_url: 'https://example.com'   # default site to crawl
     max_depth: 3 # crawl depth from the start URL
     timeout: 10 # per-request timeout (seconds)
+    user_agent: 'Mozilla/5.0 (compatible; OnPageSeoBundle/1.0; +https://github.com/lbonnet-gda/on-page-seo-bundle)'
     max_title_length: 60 # flag titles longer than this
     max_description_length: 155 # flag meta-descriptions longer than this
     exclude_patterns: # URLs matching these regexes are skipped
@@ -45,6 +46,9 @@ on_page_seo:
         - '#\.pdf$#'
     storage_dir: '%kernel.project_dir%/var/on_page_seo' # JSON reports directory; set to null/empty to disable
     storage_max_reports: 30 # oldest reports are deleted past this count per crawled URL (0 = keep forever)
+    allow_private_network: false # set true only to intentionally audit an internal network (SSRF risk otherwise)
+    request_delay_ms: 200 # minimum delay between requests to the same host (0 = no throttling); the audited host is exempt
+    respect_robots_txt: true # skip pages disallowed by the crawled site's robots.txt and honor its Crawl-delay
 ```
 
 ## Usage
@@ -53,19 +57,8 @@ on_page_seo:
 php bin/console on-page-seo:check [url] [--max-depth=N] [--exclude=PATTERN ...]
 ```
 
-The `url` argument is optional if `on_page_seo.base_url` is configured. The command exits with a non-zero status
-code when SEO issues are found, so it can be used as a CI check.
-
-## Roadmap
-
-- [x] Bundle skeleton and configuration
-- [x] Page metadata extraction (title, meta description, headings, image alt)
-- [x] Site crawler orchestration
-- [x] Per-page audit rules (missing/too long title and description, missing H1, images without alt)
-- [x] Duplicate title/description detection across pages
-- [x] Console command
-- [x] Result persistence
-- [x] Tests & CI matrix
+The `url` argument is optional if `on_page_seo.base_url` is configured. The command exits with a non-zero status code
+when SEO issues are found, so it can be used as a CI check.
 
 ## License
 
