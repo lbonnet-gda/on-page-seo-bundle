@@ -233,6 +233,11 @@ identifies genuinely different content rather than noise. On sites where some pa
 between what is really the same page under different query strings — use `exclude_patterns` to filter those out
 explicitly, e.g. `'#[?&]utm_#'` or `'#\?page=#'`.
 
+## Security
+
+To report a vulnerability, please don't open a public issue — see [SECURITY.md](SECURITY.md) for how to report it
+privately.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
