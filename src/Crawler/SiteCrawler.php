@@ -6,7 +6,7 @@ namespace Lbonnet\OnPageSeoBundle\Crawler;
 
 use Lbonnet\CrawlerToolkit\Http\BoundedContentReader;
 use Lbonnet\CrawlerToolkit\Http\EffectiveUrlResolver;
-use Lbonnet\CrawlerToolkit\Http\ThrottleExemptionInterface;
+use Lbonnet\CrawlerToolkit\Http\SiteThrottleExemption;
 use Lbonnet\CrawlerToolkit\Robots\RobotsTxtCheckerInterface;
 use Lbonnet\CrawlerToolkit\Url\UrlNormalizer;
 use Lbonnet\OnPageSeoBundle\Auditor\DuplicateContentAuditorInterface;
@@ -63,17 +63,8 @@ final class SiteCrawler implements CrawlerInterface
         /** @var list<array{url: string, depth: int}> $queue */
         $queue = [['url' => $startUrl, 'depth' => 0]];
 
-        $startHost = parse_url($startUrl, PHP_URL_HOST);
-        $throttle = null;
-
-        if (is_string($startHost) && $this->httpClient instanceof ThrottleExemptionInterface) {
-            $throttle = $this->httpClient;
-
-            $crawlDelay = $this->robotsTxtChecker?->crawlDelay($startUrl);
-            $delayMs = $crawlDelay !== null ? (int)round($crawlDelay * 1000) : 0;
-
-            $throttle->setHostDelay($startHost, $delayMs);
-        }
+        $startKey = UrlNormalizer::normalizeForDedup($startUrl);
+        $throttleExemption = SiteThrottleExemption::begin($this->httpClient, $startUrl, $this->robotsTxtChecker);
 
         try {
             while (!empty($queue)) {
@@ -121,6 +112,10 @@ final class SiteCrawler implements CrawlerInterface
                     $visited[$effectiveKey] = true;
                 }
 
+                if ($visitedKey === $startKey) {
+                    $throttleExemption->moveTo($effectiveUrl);
+                }
+
                 $totalChecked++;
 
                 $metadata = $this->metadataExtractor->extract($html);
@@ -151,7 +146,7 @@ final class SiteCrawler implements CrawlerInterface
                 }
             }
         } finally {
-            $throttle?->setHostDelay(null);
+            $throttleExemption->end();
         }
 
         $pages = $this->duplicateContentAuditor->audit($pages);
