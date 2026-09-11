@@ -77,6 +77,33 @@ final class HtmlPageMetadataExtractorTest extends TestCase
         $this->assertSame(['/broken.png'], $metadata->imagesMissingAlt);
     }
 
+    /**
+     * @dataProvider templateDocumentProvider
+     */
+    public function testIgnoresContentInsideTemplate(string $html): void
+    {
+        $metadata = $this->extractor->extract($html);
+
+        $this->assertSame('Real title', $metadata->title);
+        $this->assertSame('Real description', $metadata->metaDescription);
+        $this->assertSame(['Visible'], $metadata->headings);
+        $this->assertSame(['/visible.png'], $metadata->imagesMissingAlt);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function templateDocumentProvider(): iterable
+    {
+        $head = '<template><title>Template title</title><meta name="description" content="Template description">'
+            .'</template><title>Real title</title><meta name="description" content="Real description">';
+        $body = '<template><h1>Hidden</h1><img src="/hidden.png"></template><h1>Visible</h1><img src="/visible.png">';
+
+        // DomCrawler picks its parser from the doctype, so both are covered.
+        yield 'HTML5 document' => ["<!DOCTYPE html><html><head>{$head}</head><body>{$body}</body></html>"];
+        yield 'document without doctype' => ["<html><head>{$head}</head><body>{$body}</body></html>"];
+    }
+
     public function testEmptyHtmlReturnsEmptyMetadata(): void
     {
         $metadata = $this->extractor->extract('');
