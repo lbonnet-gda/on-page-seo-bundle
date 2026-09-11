@@ -28,7 +28,7 @@ final class HtmlPageMetadataExtractor implements PageMetadataExtractorInterface
 
     private function extractTitle(Crawler $crawler): ?string
     {
-        $titleNode = $crawler->filter('title');
+        $titleNode = self::outsideTemplates($crawler->filter('title'));
 
         if ($titleNode->count() === 0) {
             return null;
@@ -41,7 +41,7 @@ final class HtmlPageMetadataExtractor implements PageMetadataExtractorInterface
 
     private function extractMetaDescription(Crawler $crawler): ?string
     {
-        foreach ($crawler->filter('meta[name]') as $element) {
+        foreach (self::outsideTemplates($crawler->filter('meta[name]')) as $element) {
             if (!$element instanceof DOMElement) {
                 continue;
             }
@@ -65,7 +65,7 @@ final class HtmlPageMetadataExtractor implements PageMetadataExtractorInterface
     {
         $headings = [];
 
-        foreach ($crawler->filter('h1') as $element) {
+        foreach (self::outsideTemplates($crawler->filter('h1')) as $element) {
             if (!$element instanceof DOMElement) {
                 continue;
             }
@@ -83,7 +83,7 @@ final class HtmlPageMetadataExtractor implements PageMetadataExtractorInterface
     {
         $missing = [];
 
-        foreach ($crawler->filter('img') as $element) {
+        foreach (self::outsideTemplates($crawler->filter('img')) as $element) {
             if (!$element instanceof DOMElement) {
                 continue;
             }
@@ -96,5 +96,18 @@ final class HtmlPageMetadataExtractor implements PageMetadataExtractorInterface
         }
 
         return $missing;
+    }
+
+    private static function outsideTemplates(Crawler $nodes): Crawler
+    {
+        return $nodes->reduce(static function (Crawler $node): bool {
+            for ($parent = $node->getNode(0)?->parentNode; $parent !== null; $parent = $parent->parentNode) {
+                if (strcasecmp($parent->nodeName, 'template') === 0) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
     }
 }
