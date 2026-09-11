@@ -404,4 +404,67 @@ final class SiteCrawlerTest extends TestCase
 
         $this->assertSame([['example.com', 0], [null, 0]], $httpClient->hostDelayCalls);
     }
+
+    public function testCrawlMovesTheThrottleExemptionToWhereTheStartUrlRedirects(): void
+    {
+        $linkExtractor = $this->createMock(InternalLinkExtractorInterface::class);
+        $linkExtractor->method('extract')->willReturn([]);
+
+        $metadataExtractor = $this->createMock(PageMetadataExtractorInterface::class);
+        $metadataExtractor->method('extract')->willReturn(new PageMetadata());
+
+        $auditor = $this->createMock(PageAuditorInterface::class);
+        $auditor->method('audit')->willReturn([]);
+
+        $httpClient = new class(new MockHttpClient(
+            new MockResponse('<html></html>', ['url' => 'https://www.example.com/', 'redirect_count' => 1])
+        )) implements HttpClientInterface, ThrottleExemptionInterface {
+            /** @var list<array{0: ?string, 1: int}> */
+            public array $hostDelayCalls = [];
+
+            public function __construct(private HttpClientInterface $inner)
+            {
+            }
+
+            public function setHostDelay(?string $host, int $delayMs = 0): void
+            {
+                $this->hostDelayCalls[] = [$host, $delayMs];
+            }
+
+            public function request(string $method, string $url, array $options = []): ResponseInterface
+            {
+                return $this->inner->request($method, $url, $options);
+            }
+
+            public function stream(
+                ResponseInterface|iterable $responses,
+                ?float $timeout = null
+            ): ResponseStreamInterface {
+                return $this->inner->stream($responses, $timeout);
+            }
+
+            public function withOptions(array $options): static
+            {
+                $clone = clone $this;
+                $clone->inner = $this->inner->withOptions($options);
+
+                return $clone;
+            }
+        };
+
+        $crawler = new SiteCrawler(
+            $linkExtractor,
+            $metadataExtractor,
+            $auditor,
+            new DuplicateContentAuditor(),
+            $httpClient,
+        );
+
+        $crawler->crawl('https://example.com');
+
+        $this->assertSame(
+            [['example.com', 0], ['www.example.com', 0], [null, 0]],
+            $httpClient->hostDelayCalls,
+        );
+    }
 }
