@@ -176,6 +176,7 @@ By default, every completed audit automatically saves a detailed JSON snapshot i
     "totalChecked": 12,
     "totalDuration": 1.84,
     "truncated": false,
+    "blockedByRobotsTxt": false,
     "issuesCount": 2,
     "pages": [
         {
@@ -227,7 +228,9 @@ Two settings help keep an audit well-behaved:
   following or auditing further pages under a disallowed path. It doesn't affect the URL you explicitly pass as the
   audit's starting point. If that same `robots.txt` publishes a `Crawl-delay` for our user agent, it overrides
   `request_delay_ms` for the audited host specifically — the site owner's explicit request takes precedence over the
-  "unthrottled against itself" default.
+  "unthrottled against itself" default. And like Google, if that `robots.txt` answers a server error (5xx, 429, or no
+  response at all), the crawler treats the whole site as off-limits: it audits the starting URL only, and the report
+  is flagged `blockedByRobotsTxt`.
 
 ### Query strings and duplicate content false positives
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lbonnet\OnPageSeoBundle\Tests\Crawler;
 
 use Lbonnet\CrawlerToolkit\Http\ThrottleExemptionInterface;
+use Lbonnet\CrawlerToolkit\Robots\RobotsTxtChecker;
 use Lbonnet\CrawlerToolkit\Robots\RobotsTxtCheckerInterface;
 use Lbonnet\OnPageSeoBundle\Auditor\DuplicateContentAuditor;
 use Lbonnet\OnPageSeoBundle\Auditor\PageAuditorInterface;
@@ -23,6 +24,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use RuntimeException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\HttpClient\ResponseStreamInterface;
@@ -236,6 +238,40 @@ final class SiteCrawlerTest extends TestCase
 
         $this->assertSame(1, $report->totalChecked);
         $this->assertSame('https://example.com', $report->pages[0]->url);
+    }
+
+    public function testCrawlAuditsOnlyTheStartPageWhenRobotsTxtAnswersAServerError(): void
+    {
+        $linkExtractor = $this->createMock(InternalLinkExtractorInterface::class);
+        $linkExtractor->method('extract')->willReturn([new DiscoveredLink('https://example.com/page-1', false)]);
+
+        $metadataExtractor = $this->createMock(PageMetadataExtractorInterface::class);
+        $metadataExtractor->method('extract')->willReturn(new PageMetadata());
+
+        $auditor = $this->createMock(PageAuditorInterface::class);
+        $auditor->method('audit')->willReturn([]);
+
+        $httpClient = new MockHttpClient(static function (string $method, string $url): MockResponse {
+            if (str_ends_with($url, '/robots.txt')) {
+                return new MockResponse('', ['http_code' => Response::HTTP_SERVICE_UNAVAILABLE]);
+            }
+
+            return new MockResponse('<html></html>');
+        });
+
+        $crawler = new SiteCrawler(
+            $linkExtractor,
+            $metadataExtractor,
+            $auditor,
+            new DuplicateContentAuditor(),
+            $httpClient,
+            robotsTxtChecker: new RobotsTxtChecker($httpClient, 'TestBot/1.0'),
+        );
+
+        $report = $crawler->crawl('https://example.com');
+
+        $this->assertSame(1, $report->totalChecked);
+        $this->assertTrue($report->blockedByRobotsTxt);
     }
 
     public function testCrawlSkipsInternalLinksDisallowedByRobotsTxt(): void

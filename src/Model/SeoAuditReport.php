@@ -9,6 +9,7 @@ final class SeoAuditReport
     /**
      * @param list<PageAudit> $pages
      * @param bool $truncated the crawl stopped at the max_pages limit while URLs were still waiting to be fetched
+     * @param bool $blockedByRobotsTxt the site's robots.txt answers a server error, so no internal link was followed
      */
     public function __construct(
         public readonly string $startUrl,
@@ -16,6 +17,7 @@ final class SeoAuditReport
         public readonly int $totalChecked = 0,
         public readonly float $totalDuration = 0.0,
         public readonly bool $truncated = false,
+        public readonly bool $blockedByRobotsTxt = false,
     ) {
     }
 

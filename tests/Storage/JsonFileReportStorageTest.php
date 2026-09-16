@@ -56,6 +56,7 @@ final class JsonFileReportStorageTest extends TestCase
         $decoded = json_decode((string)file_get_contents($savedPath), true);
         $this->assertSame('https://example.com', $decoded['startUrl']);
         $this->assertFalse($decoded['truncated']);
+        $this->assertFalse($decoded['blockedByRobotsTxt']);
         $this->assertSame(1, $decoded['issuesCount']);
         $this->assertSame('Home', $decoded['pages'][0]['title']);
         $this->assertSame('missing_h1', $decoded['pages'][0]['issues'][0]['type']);
