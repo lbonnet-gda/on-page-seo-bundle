@@ -29,6 +29,21 @@ final class CheckSeoCommandTest extends TestCase
         $this->assertStringContainsString('No URL provided', $tester->getDisplay());
     }
 
+    public function testExecutePassesMaxPagesAndWarnsAboutATruncatedReport(): void
+    {
+        $crawler = $this->createMock(CrawlerInterface::class);
+        $crawler->expects($this->once())
+            ->method('crawl')
+            ->with($this->anything(), $this->anything(), $this->anything(), $this->anything(), 25)
+            ->willReturn(new SeoAuditReport('https://example.com', [], 25, 1.5, truncated: true));
+
+        $tester = new CommandTester(new CheckSeoCommand($crawler, defaultBaseUrl: 'https://example.com'));
+
+        $tester->execute(['--max-pages' => '25']);
+
+        $this->assertStringContainsString('Stopped after 25 page(s)', $tester->getDisplay());
+    }
+
     public function testExecuteSuccessWhenNoIssuesFound(): void
     {
         $crawler = $this->createMock(CrawlerInterface::class);

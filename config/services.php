@@ -35,6 +35,7 @@ return static function (ContainerConfigurator $container): void {
     $services->set(SiteCrawler::class)
         ->arg('$httpClient', service('on_page_seo.http_client'))
         ->arg('$defaultMaxDepth', param('on_page_seo.max_depth'))
+        ->arg('$defaultMaxPages', param('on_page_seo.max_pages'))
         ->arg('$defaultTimeout', param('on_page_seo.timeout'))
         ->arg('$userAgent', param('on_page_seo.user_agent'))
         ->arg('$defaultExcludePatterns', param('on_page_seo.exclude_patterns'));

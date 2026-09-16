@@ -34,6 +34,7 @@ final class OnPageSeoBundleTest extends TestCase
 
         $this->assertNull($container->getParameter('on_page_seo.base_url'));
         $this->assertSame(3, $container->getParameter('on_page_seo.max_depth'));
+        $this->assertSame(500, $container->getParameter('on_page_seo.max_pages'));
         $this->assertSame(10, $container->getParameter('on_page_seo.timeout'));
         $this->assertSame(SiteCrawler::DEFAULT_USER_AGENT, $container->getParameter('on_page_seo.user_agent'));
         $this->assertSame(60, $container->getParameter('on_page_seo.max_title_length'));
@@ -101,6 +102,7 @@ final class OnPageSeoBundleTest extends TestCase
             'on_page_seo' => [
                 'base_url' => 'https://example.com',
                 'max_depth' => 5,
+                'max_pages' => 0,
                 'timeout' => 20,
                 'user_agent' => 'CustomBot/2.0',
                 'storage_dir' => '/custom/storage/path',
@@ -117,6 +119,7 @@ final class OnPageSeoBundleTest extends TestCase
 
         $this->assertSame('https://example.com', $container->getParameter('on_page_seo.base_url'));
         $this->assertSame(5, $container->getParameter('on_page_seo.max_depth'));
+        $this->assertSame(0, $container->getParameter('on_page_seo.max_pages'));
         $this->assertSame(20, $container->getParameter('on_page_seo.timeout'));
         $this->assertSame('CustomBot/2.0', $container->getParameter('on_page_seo.user_agent'));
         $this->assertSame(['#/admin#', '#/logout#'], $container->getParameter('on_page_seo.exclude_patterns'));
