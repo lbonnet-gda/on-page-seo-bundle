@@ -13,6 +13,7 @@ final class CheckSeoMessage
         public readonly ?string $startUrl = null,
         public readonly ?int $maxDepth = null,
         public readonly array $excludePatterns = [],
+        public readonly ?int $maxPages = null,
     ) {
     }
 }

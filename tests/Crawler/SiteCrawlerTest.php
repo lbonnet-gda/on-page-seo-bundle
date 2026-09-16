@@ -172,6 +172,34 @@ final class SiteCrawlerTest extends TestCase
         $this->assertNotContains('https://example.com/page-2', $urls);
     }
 
+    public function testCrawlStopsAtTheMaxPagesLimitAndMarksTheReportAsTruncated(): void
+    {
+        $crawler = $this->crawlerOverTwoLinkedPages(defaultMaxPages: 500);
+
+        $report = $crawler->crawl('https://example.com', maxPages: 1);
+
+        $this->assertSame(1, $report->totalChecked);
+        $this->assertTrue($report->truncated);
+        $this->assertSame(
+            ['https://example.com'],
+            array_map(static fn(PageAudit $page): string => $page->url, $report->pages),
+        );
+    }
+
+    public function testCrawlIsNotTruncatedWhenTheSiteFitsTheLimitOrThereIsNone(): void
+    {
+        $crawler = $this->crawlerOverTwoLinkedPages(defaultMaxPages: 1);
+
+        foreach ([2, 0] as $maxPages) {
+            $report = $crawler->crawl('https://example.com', maxPages: $maxPages);
+
+            $this->assertSame(2, $report->totalChecked, (string)$maxPages);
+            $this->assertFalse($report->truncated, (string)$maxPages);
+        }
+
+        $this->assertTrue($crawler->crawl('https://example.com')->truncated);
+    }
+
     public function testCrawlSkipsNonHtmlResponses(): void
     {
         $startUrl = 'https://example.com';
@@ -465,6 +493,34 @@ final class SiteCrawlerTest extends TestCase
         $this->assertSame(
             [['example.com', 0], ['www.example.com', 0], [null, 0]],
             $httpClient->hostDelayCalls,
+        );
+    }
+
+    /**
+     * The home page links to /page-1, which links back to the home page.
+     */
+    private function crawlerOverTwoLinkedPages(int $defaultMaxPages): SiteCrawler
+    {
+        $linkExtractor = $this->createMock(InternalLinkExtractorInterface::class);
+        $linkExtractor->method('extract')->willReturnCallback(
+            static fn(string $html, string $sourceUrl): array => $sourceUrl === 'https://example.com'
+                ? [new DiscoveredLink('https://example.com/page-1', false)]
+                : [new DiscoveredLink('https://example.com', false)],
+        );
+
+        $metadataExtractor = $this->createMock(PageMetadataExtractorInterface::class);
+        $metadataExtractor->method('extract')->willReturn(new PageMetadata());
+
+        $auditor = $this->createMock(PageAuditorInterface::class);
+        $auditor->method('audit')->willReturn([]);
+
+        return new SiteCrawler(
+            $linkExtractor,
+            $metadataExtractor,
+            $auditor,
+            new DuplicateContentAuditor(),
+            new MockHttpClient(static fn(): MockResponse => new MockResponse('<html></html>')),
+            defaultMaxPages: $defaultMaxPages,
         );
     }
 }

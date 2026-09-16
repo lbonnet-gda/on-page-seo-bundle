@@ -39,6 +39,7 @@ Create `config/packages/on_page_seo.yaml`:
 on_page_seo:
     base_url: 'https://example.com'   # default site to crawl
     max_depth: 3 # crawl depth from the start URL
+    max_pages: 500 # pages audited per crawl before stopping; the report is then marked as truncated (0 = no limit)
     timeout: 10 # per-request timeout (seconds)
     user_agent: 'Mozilla/5.0 (compatible; OnPageSeoBundle/1.0; +https://github.com/lbonnet-gda/on-page-seo-bundle)'
     max_title_length: 60 # flag titles longer than this
@@ -58,7 +59,7 @@ on_page_seo:
 ### 1. Console Command (CLI & CI)
 
 ```bash
-php bin/console on-page-seo:check [url] [--max-depth=N] [--exclude=PATTERN ...]
+php bin/console on-page-seo:check [url] [--max-depth=N] [--max-pages=N] [--exclude=PATTERN ...]
 ```
 
 The `url` argument is optional if `on_page_seo.base_url` is configured. The command exits with a non-zero status code
@@ -69,7 +70,8 @@ when SEO issues are found, so it can be used as a CI check.
 The bundle provides a `CheckSeoMessage` and its handler to offload the audit to an asynchronous worker queue:
 
 ```php
-use Lbonnet\OnPageSeoBundle\Message\CheckSeoMessage;use Symfony\Component\Messenger\MessageBusInterface;
+use Lbonnet\OnPageSeoBundle\Message\CheckSeoMessage;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 // In a controller, command or custom service
 public function triggerAudit(MessageBusInterface $bus): void
@@ -82,6 +84,7 @@ public function triggerAudit(MessageBusInterface $bus): void
         startUrl: 'https://example.com/blog',
         maxDepth: 2,
         excludePatterns: ['#/preview#'],
+        maxPages: 100,
     ));
 }
 ```
@@ -172,6 +175,7 @@ By default, every completed audit automatically saves a detailed JSON snapshot i
     "createdAt": "2026-08-14T14:15:00+02:00",
     "totalChecked": 12,
     "totalDuration": 1.84,
+    "truncated": false,
     "issuesCount": 2,
     "pages": [
         {

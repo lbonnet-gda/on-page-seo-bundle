@@ -47,6 +47,12 @@ final class CheckSeoCommand extends Command
                 'Override the maximum crawl depth'
             )
             ->addOption(
+                'max-pages',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Override the maximum number of pages to audit (0 = no limit)'
+            )
+            ->addOption(
                 'exclude',
                 null,
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
@@ -77,6 +83,10 @@ final class CheckSeoCommand extends Command
             /** @var string|null $maxDepthOption */
             $maxDepthOption = $input->getOption('max-depth');
             $maxDepth = $maxDepthOption !== null ? (int)$maxDepthOption : null;
+
+            /** @var string|null $maxPagesOption */
+            $maxPagesOption = $input->getOption('max-pages');
+            $maxPages = $maxPagesOption !== null ? (int)$maxPagesOption : null;
 
             /** @var list<string> $excludePatterns */
             $excludePatterns = (array)$input->getOption('exclude');
@@ -119,6 +129,7 @@ final class CheckSeoCommand extends Command
                 maxDepth: $maxDepth,
                 excludePatterns: $excludePatterns,
                 progressCallback: $progressCallback,
+                maxPages: $maxPages,
             );
 
             if ($progressBar !== null) {
@@ -126,6 +137,16 @@ final class CheckSeoCommand extends Command
                 $io->newLine(2);
             } else {
                 $io->newLine();
+            }
+
+            if ($report->truncated) {
+                $io->warning(
+                    sprintf(
+                        'Stopped after %d page(s): the max_pages limit was reached, so the site was only partially '
+                        .'audited. Raise it with --max-pages or "on_page_seo.max_pages".',
+                        $report->totalChecked
+                    )
+                );
             }
 
             if (!$report->hasIssues()) {

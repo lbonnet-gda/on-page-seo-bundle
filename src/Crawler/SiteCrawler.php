@@ -43,6 +43,7 @@ final class SiteCrawler implements CrawlerInterface
         /** @var list<string> */
         private readonly array $defaultExcludePatterns = [],
         private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly int $defaultMaxPages = 500,
     ) {
     }
 
@@ -51,14 +52,17 @@ final class SiteCrawler implements CrawlerInterface
         ?int $maxDepth = null,
         array $excludePatterns = [],
         ?callable $progressCallback = null,
+        ?int $maxPages = null,
     ): SeoAuditReport {
         $startTime = microtime(true);
         $maxDepth = $maxDepth ?? $this->defaultMaxDepth;
+        $maxPages = $maxPages ?? $this->defaultMaxPages;
         $activeExcludePatterns = array_merge($this->defaultExcludePatterns, $excludePatterns);
 
         $visited = [];
         $pages = [];
         $totalChecked = 0;
+        $truncated = false;
 
         /** @var list<array{url: string, depth: int}> $queue */
         $queue = [['url' => $startUrl, 'depth' => 0]];
@@ -76,6 +80,12 @@ final class SiteCrawler implements CrawlerInterface
 
                 if (isset($visited[$visitedKey])) {
                     continue;
+                }
+
+                if ($maxPages > 0 && $totalChecked >= $maxPages) {
+                    $truncated = true;
+
+                    break;
                 }
 
                 $visited[$visitedKey] = true;
@@ -158,6 +168,7 @@ final class SiteCrawler implements CrawlerInterface
             pages: $pages,
             totalChecked: $totalChecked,
             totalDuration: round($totalDuration, 3),
+            truncated: $truncated,
         );
 
         try {

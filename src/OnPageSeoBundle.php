@@ -36,6 +36,14 @@ final class OnPageSeoBundle extends AbstractBundle
             ->info('Maximum crawl depth from the starting URL.')
             ->end();
 
+        $children->integerNode('max_pages')
+            ->defaultValue(500)
+            ->min(0)
+            ->info(
+                'Maximum number of pages audited per crawl; the crawl stops there and the report is marked as truncated. Set to 0 for no limit.'
+            )
+            ->end();
+
         $children->integerNode('timeout')
             ->defaultValue(10)
             ->min(1)
@@ -105,6 +113,7 @@ final class OnPageSeoBundle extends AbstractBundle
      * @param array{
      *     base_url: string|null,
      *     max_depth: int,
+     *     max_pages: int,
      *     timeout: int,
      *     user_agent: string,
      *     max_title_length: int,
@@ -124,6 +133,7 @@ final class OnPageSeoBundle extends AbstractBundle
         $container->parameters()
             ->set('on_page_seo.base_url', $config['base_url'])
             ->set('on_page_seo.max_depth', $config['max_depth'])
+            ->set('on_page_seo.max_pages', $config['max_pages'])
             ->set('on_page_seo.timeout', $config['timeout'])
             ->set('on_page_seo.user_agent', $config['user_agent'])
             ->set('on_page_seo.max_title_length', $config['max_title_length'])

@@ -31,7 +31,7 @@ final class CheckSeoMessageHandlerTest extends TestCase
         $crawler = $this->createMock(CrawlerInterface::class);
         $crawler->expects($this->once())
             ->method('crawl')
-            ->with('https://example.com/blog', 2, ['#/admin#'])
+            ->with('https://example.com/blog', 2, ['#/admin#'], null, 50)
             ->willReturn(
                 new SeoAuditReport(startUrl: 'https://example.com/blog', pages: [], totalChecked: 0, totalDuration: 0)
             );
@@ -43,6 +43,7 @@ final class CheckSeoMessageHandlerTest extends TestCase
                 startUrl: 'https://example.com/blog',
                 maxDepth: 2,
                 excludePatterns: ['#/admin#'],
+                maxPages: 50,
             )
         );
     }
