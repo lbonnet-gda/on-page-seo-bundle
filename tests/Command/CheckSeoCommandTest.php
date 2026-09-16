@@ -44,6 +44,19 @@ final class CheckSeoCommandTest extends TestCase
         $this->assertStringContainsString('Stopped after 25 page(s)', $tester->getDisplay());
     }
 
+    public function testExecuteWarnsWhenRobotsTxtBlockedTheCrawl(): void
+    {
+        $crawler = $this->createMock(CrawlerInterface::class);
+        $crawler->method('crawl')->willReturn(
+            new SeoAuditReport('https://example.com', [], 1, 0.42, blockedByRobotsTxt: true)
+        );
+
+        $tester = new CommandTester(new CheckSeoCommand($crawler, defaultBaseUrl: 'https://example.com'));
+        $tester->execute([]);
+
+        $this->assertStringContainsString('answers a server error', $tester->getDisplay());
+    }
+
     public function testExecuteSuccessWhenNoIssuesFound(): void
     {
         $crawler = $this->createMock(CrawlerInterface::class);
