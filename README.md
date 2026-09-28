@@ -1,5 +1,12 @@
 # OnPageSeoBundle
 
+> [!WARNING]
+> **This package is deprecated and no longer maintained.** It has been merged into
+> [`lbonnet/seo-bundle`](https://github.com/lbonnet-gda/seo-bundle), which crawls a site once and audits its links, its
+> on-page content and its technical signals in a single pass — the checks below are now its `on_page` module. No further
+> release is planned, security fixes included; the repository stays online, read-only, so existing installs keep
+> resolving.
+
 [![CI](https://github.com/lbonnet-gda/on-page-seo-bundle/actions/workflows/ci.yaml/badge.svg)](https://github.com/lbonnet-gda/on-page-seo-bundle/actions/workflows/ci.yaml)
 [![Latest Version](https://img.shields.io/packagist/v/lbonnet/on-page-seo-bundle.svg)](https://packagist.org/packages/lbonnet/on-page-seo-bundle)
 [![PHP Version](https://img.shields.io/packagist/php-v/lbonnet/on-page-seo-bundle.svg)](https://packagist.org/packages/lbonnet/on-page-seo-bundle)
